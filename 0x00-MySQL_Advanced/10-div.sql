@@ -1,7 +1,7 @@
 -- Create a function that divides two numbers
 DROP FUNCTION IF EXISTS SafeDiv;
 DELIMITER ||
-CREATE FUNCTION SafeDiv (a INT, b INT)
+CREATE FUNCTION SafeDiv (a INT, b INT) RETURNS FLOAT DETERMINISTIC
 BEGIN
     DECLARE res FLOAT DEFAULT 0;
 
