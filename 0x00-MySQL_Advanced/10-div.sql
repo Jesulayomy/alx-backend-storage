@@ -1,5 +1,5 @@
--- Create a function that devides two numbers
-DROP FUNCTION IF EXISTS SafeDiv
+-- Create a function that divides two numbers
+DROP FUNCTION IF EXISTS SafeDiv;
 DELIMITER ||
 CREATE FUNCTION SafeDiv (a INT, b INT)
 BEGIN
