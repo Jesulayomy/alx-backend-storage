@@ -1,2 +1,8 @@
 // Add a new update to the school collection
-db.school.updateMany({ name: "Holberton school" }, { $set: { address: "972 Mission street" } }, { upsert: true });
+// By default, the db.collection.update()
+//  method updates a single document. Include the option 
+// multi: true to update all documents that match the query criteria.
+db.school.update(
+    { name: "Holberton school" },
+    { $set: { address: "972 Mission street" } },
+    { multi: true });
