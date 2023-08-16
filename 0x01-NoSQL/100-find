@@ -1,0 +1,2 @@
+// lists document with special condition
+db.school.find({ name: /^Holberton/ });
