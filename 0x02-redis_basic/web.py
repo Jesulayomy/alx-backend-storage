@@ -13,7 +13,7 @@ def dCache(method: Callable) -> Callable:
     """ Temporarily left the countr """
 
     @wraps(method)
-    def invoker(url) -> str:
+    def cover(url) -> str:
         """ Wrapper for the get_page and iscariot"""
 
         redDb.incr(f'count:{url}')
@@ -24,11 +24,11 @@ def dCache(method: Callable) -> Callable:
         redDb.set(f'count:{url}', 0)
         redDb.setex(f'result:{url}', 10, result)
         return result
-    return invoker
+    return cover
 
 
 @dCache
 def get_page(url: str) -> str:
     """ Return url content so you can see if you qualify"""
-    
+
     return requests.get(url).text

@@ -2,7 +2,7 @@
 """ This exercise covers redis-py basics """
 import redis
 from functools import wraps
-from typing import Any, Callable, Union
+from typing import Any, Callable, Optional, Union
 from uuid import uuid4
 
 
@@ -10,19 +10,19 @@ def count_calls(method: Callable) -> Callable:
     """ Counts the calls of a cache class """
 
     @wraps(method)
-    def invoker(self, *args, **kwargs) -> Any:
+    def cover(self, *args, **kwargs) -> Any:
         """ Starts the parent method and increase its counter """
 
         if isinstance(self._redis, redis.Redis):
             self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)
-    return invoker
+    return cover
 
 
 def call_history(method: Callable) -> Callable:
     """ Tracks the call details of a Cache method in a Cache class."""
     @wraps(method)
-    def invoker(self, *args, **kwargs) -> Any:
+    def cover(self, *args, **kwargs) -> Any:
         """
             Calls the invoker method
         """
@@ -34,7 +34,7 @@ def call_history(method: Callable) -> Callable:
         if isinstance(self._redis, redis.Redis):
             self._redis.rpush(output, output)
         return output
-    return invoker
+    return cover
 
 
 def replay(fn: Callable) -> None:
@@ -69,7 +69,7 @@ class Cache:
         """ initialzation function for redis """
 
         self._redis = redis.Redis()
-        self._redis.flushdb(True)
+        self._redis.flushdb()
 
     @call_history
     @count_calls
@@ -80,23 +80,26 @@ class Cache:
         self._redis.set(dKey, data)
         return dKey
 
-    def get(
-            self,
-            key: str,
-            fn: Callable = None) -> Union[str, bytes, int, float]:
+    def get(self, key: str,
+            fn: Optional[Callable] = None) -> Union[str, bytes, int, float]:
         """ Extracts value from redis """
 
         data = self._redis.get(key)
-        if fn is not None:
-            return fn(data)
+        if fn:
+            data = fn(data)
         return data
 
     def get_str(self, key: str) -> str:
         """ Gets a string from redis """
-
-        return self.get(key, lambda y: y.decode('utf-8'))
+        ans = self._redis.get(key)
+        return ans.decode('utf-8')
 
     def get_int(self, key: str) -> int:
         """ Gets ain integer from remote dict """
 
-        return self.get(key, lambda y: int(y))
+        ans = self._redis.get(key)
+        try:
+            ans = int(ans.decode("utf-8"))
+        except Exception:
+            ans = 0
+        return ans
