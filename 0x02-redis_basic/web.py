@@ -2,29 +2,29 @@
 """ This module showcases expiring web caches """
 import redis
 import requests
+import time
 from functools import wraps
 from typing import Callable
 
 
-redDb = redis.Redis()
+def dCache(expiration=10):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(url):
 
+            cached_html = r.get(url)
+            if cached_html:
+                return cached_html.decode('utf-8')
 
-def dCache(method: Callable) -> Callable:
-    """ Temporarily left the countr """
+            html_content = func(url)
 
-    @wraps(method)
-    def cover(url) -> str:
-        """ Wrapper for the get_page and iscariot"""
+            r.setex(url, expiration, html_content)
+            count_key = f'count:{url}'
+            r.incr(count_key)
 
-        redDb.incr(f'count:{url}')
-        result = redDb.get(f'result:{url}')
-        if result:
-            return result.decode('utf-8')
-        result = method(url)
-        redDb.set(f'count:{url}', 0)
-        redDb.setex(f'result:{url}', 10, result)
-        return result
-    return cover
+            return html_content
+        return wrapper
+    return decorator
 
 
 @dCache
@@ -32,3 +32,22 @@ def get_page(url: str) -> str:
     """ Return url content so you can see if you qualify"""
 
     return requests.get(url).text
+
+
+if __name__ == "__main__":
+    url = "http://slowwly.robertomurray.co.uk"
+
+    r = redis.Redis()
+    print("Fetching page...")
+    start_time = time.time()
+    content = get_page(url)
+    end_time = time.time()
+    print("Page content:", content)
+    print("Time taken:", end_time - start_time, "seconds")
+
+    print("Fetching page...")
+    start_time = time.time()
+    content = get_page(url)
+    end_time = time.time()
+    print("Page content:", content)
+    print("Time taken:", end_time - start_time, "seconds")
